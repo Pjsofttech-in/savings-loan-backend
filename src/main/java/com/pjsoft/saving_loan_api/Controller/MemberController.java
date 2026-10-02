@@ -26,15 +26,15 @@ public class MemberController {
 
     // Get all members (Required for Dashboard & List views)
     @GetMapping
-    public List<Member> getAllMembers() {
-        return memberRepository.findAll();
+    public List<MemberSummary> getAllMembers() {
+        return memberRepository.findAll().stream().map(MemberSummary::from).toList();
     }
 
     // Get a single member by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Member> getMemberById(@PathVariable Long id) {
+    public ResponseEntity<MemberSummary> getMemberById(@PathVariable Long id) {
         Optional<Member> member = memberRepository.findById(id);
-        return member.map(ResponseEntity::ok)
+        return member.map(MemberSummary::from).map(ResponseEntity::ok)
                      .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -51,6 +51,10 @@ public class MemberController {
             member.setEmail(memberDetails.getEmail());
             member.setAddress(memberDetails.getAddress());
             member.setStatus(memberDetails.getStatus());
+            member.setMemberType(memberDetails.getMemberType());
+            member.setMembershipYear(memberDetails.getMembershipYear());
+            member.setCity(memberDetails.getCity());
+            member.setJoiningDate(memberDetails.getJoiningDate());
             
             Member updatedMember = memberRepository.save(member);
             return ResponseEntity.ok(updatedMember);
@@ -67,6 +71,36 @@ public class MemberController {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    public record MemberSummary(
+            Long id,
+            String fullName,
+            String email,
+            String mobile,
+            String occupation,
+            String address,
+            String memberType,
+            String membershipYear,
+            String city,
+            String joiningDate,
+            String status
+    ) {
+        private static MemberSummary from(Member member) {
+            return new MemberSummary(
+                    member.getId(),
+                    member.getFullName(),
+                    member.getEmail(),
+                    member.getMobile(),
+                    member.getOccupation(),
+                    member.getAddress(),
+                    member.getMemberType(),
+                    member.getMembershipYear(),
+                    member.getCity(),
+                    member.getJoiningDate() == null ? null : member.getJoiningDate().toString(),
+                    member.getStatus()
+            );
         }
     }
 }

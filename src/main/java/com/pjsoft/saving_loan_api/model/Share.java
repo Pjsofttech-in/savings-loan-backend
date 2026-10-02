@@ -27,6 +27,12 @@ public class Share {
     @Column(name = "number_of_shares", nullable = false)
     private int numberOfShares;
 
+    @Column(name = "share_type")
+    private String shareType;
+
+    @Column(name = "face_value")
+    private double faceValue;
+
     @Column(name = "monthly_saving", nullable = false)
     private double monthlySaving;
 
@@ -35,6 +41,15 @@ public class Share {
 
     @Column(name = "payment_method", length = 50)
     private String paymentMethod;
+
+    @Column(name = "payment_status", length = 30)
+    private String paymentStatus;
+
+    @Column(name = "due_date")
+    private LocalDate dueDate;
+
+    @Column(name = "reference_number", length = 100)
+    private String referenceNumber;
 
     @Column(name = "application_date")
     private LocalDate applicationDate;
@@ -77,6 +92,12 @@ public class Share {
     public int getNumberOfShares() { return numberOfShares; }
     public void setNumberOfShares(int numberOfShares) { this.numberOfShares = numberOfShares; }
 
+    public String getShareType() { return shareType; }
+    public void setShareType(String shareType) { this.shareType = shareType; }
+
+    public double getFaceValue() { return faceValue; }
+    public void setFaceValue(double faceValue) { this.faceValue = faceValue; }
+
     public double getMonthlySaving() { return monthlySaving; }
     public void setMonthlySaving(double monthlySaving) { this.monthlySaving = monthlySaving; }
 
@@ -85,6 +106,15 @@ public class Share {
 
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+
+    public LocalDate getDueDate() { return dueDate; }
+    public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
+
+    public String getReferenceNumber() { return referenceNumber; }
+    public void setReferenceNumber(String referenceNumber) { this.referenceNumber = referenceNumber; }
 
     public LocalDate getApplicationDate() { return applicationDate; }
     public void setApplicationDate(LocalDate applicationDate) { this.applicationDate = applicationDate; }
