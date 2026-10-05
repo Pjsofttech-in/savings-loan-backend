@@ -9,10 +9,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.mock.web.MockMultipartFile;
+
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -28,6 +33,67 @@ class SavingLoanApiApplicationTests {
 
 	@Test
 	void contextLoads() {
+	}
+
+	@Test
+	void exposesRegistrationPaymentConfiguration() throws Exception {
+		mockMvc.perform(get("/api/payments/config"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.amount").value(750))
+				.andExpect(jsonPath("$.ready").value(true));
+	}
+
+	@Test
+	void returnsPersistedMemberDetailsWithoutSensitiveFields() throws Exception {
+		Member member = new Member();
+		member.setFullName("Member Detail Test");
+		member.setMobile("9876543210");
+		member.setFatherName("Parent Name");
+		member.setBirthDate(LocalDate.of(1990, 4, 12));
+		member.setNomineeName("Nominee Name");
+		member.setNomineeRelationship("Spouse");
+		member.setNomineeMobile("9876543211");
+		member.setStatus("Suspended");
+		member.setPaymentId("pay_test_123");
+		member.setDocumentType("Aadhaar Card");
+		member.setPasswordHash("hashed-value");
+		member = memberRepository.save(member);
+
+		mockMvc.perform(get("/api/members"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[*].nomineeName").doesNotExist())
+				.andExpect(jsonPath("$[*].paymentId").doesNotExist());
+
+		mockMvc.perform(get("/api/members/{id}", member.getId()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.fatherName").value("Parent Name"))
+				.andExpect(jsonPath("$.birthDate").value("1990-04-12"))
+				.andExpect(jsonPath("$.nomineeRelationship").value("Spouse"))
+				.andExpect(jsonPath("$.status").value("Suspended"))
+				.andExpect(jsonPath("$.paymentId").value("pay_test_123"))
+				.andExpect(jsonPath("$.passwordHash").doesNotExist())
+				.andExpect(jsonPath("$.verificationDocument").doesNotExist());
+	}
+
+	@Test
+	void rejectsUnsupportedRegistrationDocument() throws Exception {
+		MockMultipartFile document = new MockMultipartFile(
+				"document", "proof.txt", "text/plain", "proof".getBytes(StandardCharsets.UTF_8));
+
+		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+					.multipart("/api/payments/complete")
+					.file(document)
+					.param("orderId", "order_test")
+					.param("paymentId", "payment_test")
+					.param("signature", "signature")
+					.param("fullName", "Test Member")
+					.param("mobile", "9876543210")
+					.param("password", "password123")
+					.param("nomineeName", "Test Nominee")
+					.param("nomineeRelationship", "Parent")
+					.param("nomineeMobile", "9876543211")
+					.param("documentType", "Aadhaar Card"))
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test

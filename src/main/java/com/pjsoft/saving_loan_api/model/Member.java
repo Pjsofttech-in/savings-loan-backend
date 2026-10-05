@@ -16,6 +16,15 @@ public class Member {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
+    @Column(name = "father_name")
+    private String fatherName;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
+    @Column(name = "gender")
+    private String gender;
+
     @Column(name = "email")
     private String email;
 
@@ -59,6 +68,14 @@ public class Member {
     @Column(name = "payment_id", unique = true)
     private String paymentId;
 
+    @Column(name = "document_type")
+    private String documentType;
+
+    @JsonIgnore
+    @Lob
+    @Column(name = "verification_document", columnDefinition = "LONGBLOB")
+    private byte[] verificationDocument;
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Share> shares;
 
@@ -71,6 +88,15 @@ public class Member {
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getFatherName() { return fatherName; }
+    public void setFatherName(String fatherName) { this.fatherName = fatherName; }
+
+    public LocalDate getBirthDate() { return birthDate; }
+    public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
+
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -118,6 +144,12 @@ public class Member {
 
     public String getPaymentId() { return paymentId; }
     public void setPaymentId(String paymentId) { this.paymentId = paymentId; }
+
+    public String getDocumentType() { return documentType; }
+    public void setDocumentType(String documentType) { this.documentType = documentType; }
+
+    public byte[] getVerificationDocument() { return verificationDocument; }
+    public void setVerificationDocument(byte[] verificationDocument) { this.verificationDocument = verificationDocument; }
 
     public List<Share> getShares() { return shares; }
     public void setShares(List<Share> shares) { this.shares = shares; }

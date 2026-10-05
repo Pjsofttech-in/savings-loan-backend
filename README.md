@@ -1,6 +1,6 @@
 # Backend Configuration
 
-Member registration payments use Razorpay Checkout. Configure the fee and Razorpay credentials in the backend process environment before starting the API:
+Member registration payments use Razorpay Checkout. The registration form offers all available online methods or a UPI-only option for Google Pay and Razorpay's scan-to-pay flow when available. Member data and the uploaded ID proof are stored only after the backend verifies a captured payment. Configure the fee and Razorpay credentials in the backend process environment before starting the API:
 
 ```powershell
 $env:REGISTRATION_FEE = "750"

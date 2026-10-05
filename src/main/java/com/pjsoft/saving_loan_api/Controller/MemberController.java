@@ -32,9 +32,9 @@ public class MemberController {
 
     // Get a single member by ID
     @GetMapping("/{id}")
-    public ResponseEntity<MemberSummary> getMemberById(@PathVariable Long id) {
+    public ResponseEntity<MemberDetails> getMemberById(@PathVariable Long id) {
         Optional<Member> member = memberRepository.findById(id);
-        return member.map(MemberSummary::from).map(ResponseEntity::ok)
+        return member.map(MemberDetails::from).map(ResponseEntity::ok)
                      .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -100,6 +100,52 @@ public class MemberController {
                     member.getCity(),
                     member.getJoiningDate() == null ? null : member.getJoiningDate().toString(),
                     member.getStatus()
+            );
+        }
+    }
+
+    public record MemberDetails(
+            Long id,
+            String fullName,
+            String email,
+            String mobile,
+            String occupation,
+            String address,
+            String memberType,
+            String membershipYear,
+            String city,
+            String joiningDate,
+            String status,
+            String fatherName,
+            String birthDate,
+            String gender,
+            String nomineeName,
+            String nomineeRelationship,
+            String nomineeMobile,
+            String paymentId,
+            String documentType
+    ) {
+        private static MemberDetails from(Member member) {
+            return new MemberDetails(
+                    member.getId(),
+                    member.getFullName(),
+                    member.getEmail(),
+                    member.getMobile(),
+                    member.getOccupation(),
+                    member.getAddress(),
+                    member.getMemberType(),
+                    member.getMembershipYear(),
+                    member.getCity(),
+                    member.getJoiningDate() == null ? null : member.getJoiningDate().toString(),
+                    member.getStatus(),
+                    member.getFatherName(),
+                    member.getBirthDate() == null ? null : member.getBirthDate().toString(),
+                    member.getGender(),
+                    member.getNomineeName(),
+                    member.getNomineeRelationship(),
+                    member.getNomineeMobile(),
+                    member.getPaymentId(),
+                    member.getDocumentType()
             );
         }
     }
