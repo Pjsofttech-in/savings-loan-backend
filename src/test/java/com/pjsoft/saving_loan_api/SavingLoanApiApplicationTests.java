@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.nio.charset.StandardCharsets;
@@ -18,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -36,11 +38,56 @@ class SavingLoanApiApplicationTests {
 	}
 
 	@Test
+	void servesFrontendAtRoot() throws Exception {
+		mockMvc.perform(get("/"))
+				.andExpect(status().isOk())
+				.andExpect(forwardedUrl("index.html"));
+	}
+
+	@Test
 	void exposesRegistrationPaymentConfiguration() throws Exception {
 		mockMvc.perform(get("/api/payments/config"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.amount").value(750))
-				.andExpect(jsonPath("$.ready").value(true));
+				.andExpect(jsonPath("$.amount").value(0))
+				.andExpect(jsonPath("$.feeConfigured").value(false))
+				.andExpect(jsonPath("$.ready").value(false));
+	}
+
+	@Test
+	@Transactional
+	void allowsAdminToSetPersistentRegistrationFee() throws Exception {
+		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+					.put("/api/payments/registration-fee")
+					.header("X-Admin-Password", "test-admin-password")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("{\"amount\":1250.50}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.amount").value(1250.50));
+
+		mockMvc.perform(get("/api/payments/config"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.amount").value(1250.50))
+				.andExpect(jsonPath("$.feeConfigured").value(true));
+	}
+
+	@Test
+	void rejectsRegistrationFeeChangesWithoutAdminPassword() throws Exception {
+		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+					.put("/api/payments/registration-fee")
+					.header("X-Admin-Password", "incorrect")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("{\"amount\":1250}"))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void rejectsInvalidRegistrationFee() throws Exception {
+		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+					.put("/api/payments/registration-fee")
+					.header("X-Admin-Password", "test-admin-password")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("{\"amount\":0}"))
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test
