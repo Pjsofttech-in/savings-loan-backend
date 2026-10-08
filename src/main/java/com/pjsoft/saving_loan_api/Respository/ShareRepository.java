@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ShareRepository extends JpaRepository<Share, Long> {
     List<Share> findByMemberId(Long memberId);
+    boolean existsByReferenceNumber(String referenceNumber);
 }

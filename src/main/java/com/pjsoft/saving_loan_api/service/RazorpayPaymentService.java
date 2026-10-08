@@ -1,5 +1,7 @@
 package com.pjsoft.saving_loan_api.service;
 
+import com.pjsoft.saving_loan_api.Respository.RegistrationFeeRepository;
+import com.pjsoft.saving_loan_api.model.RegistrationFee;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -13,15 +15,14 @@ import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class RazorpayPaymentService {
     private final RestClient restClient = RestClient.create();
-
-    @Value("${app.registration.fee:0}")
-    private String registrationFee;
+    private final RegistrationFeeRepository registrationFeeRepository;
 
     @Value("${app.razorpay.key-id:}")
     private String keyId;
@@ -29,19 +30,37 @@ public class RazorpayPaymentService {
     @Value("${app.razorpay.key-secret:}")
     private String keySecret;
 
+    @Value("${app.admin.password:}")
+    private String adminPassword;
+
+    public RazorpayPaymentService(RegistrationFeeRepository registrationFeeRepository) {
+        this.registrationFeeRepository = registrationFeeRepository;
+    }
+
     public Map<String, Object> checkoutConfiguration() {
-        return Map.of(
-            "keyId", keyId,
-            "amount", getRegistrationFee(),
-            "ready", !keyId.isBlank() && !keySecret.isBlank()
-        );
+        BigDecimal fee = getConfiguredRegistrationFee();
+        Map<String, Object> configuration = new HashMap<>();
+        configuration.put("keyId", keyId);
+        configuration.put("amount", fee == null ? BigDecimal.ZERO : fee);
+        configuration.put("feeConfigured", fee != null);
+        configuration.put("ready", fee != null && !keyId.isBlank() && !keySecret.isBlank());
+        return configuration;
+    }
+
+    public BigDecimal updateRegistrationFee(BigDecimal amount, String providedAdminPassword) {
+        requireAdminPassword(providedAdminPassword);
+        BigDecimal validatedAmount = validateRegistrationFee(amount);
+        RegistrationFee fee = registrationFeeRepository.findById(RegistrationFee.SETTINGS_ID)
+                .orElseGet(RegistrationFee::new);
+        fee.setAmount(validatedAmount);
+        return registrationFeeRepository.save(fee).getAmount();
     }
 
     public Map<String, Object> createOrder() {
         requireCredentials();
         long amountInPaise;
         try {
-            amountInPaise = getRegistrationFee()
+            amountInPaise = getRequiredRegistrationFee()
                     .setScale(2, RoundingMode.UNNECESSARY)
                     .movePointRight(2)
                     .longValueExact();
@@ -90,13 +109,44 @@ public class RazorpayPaymentService {
         }
     }
 
-    private BigDecimal getRegistrationFee() {
-        try {
-            BigDecimal fee = new BigDecimal(registrationFee);
-            if (fee.signum() <= 0) throw new NumberFormatException();
-            return fee;
-        } catch (NumberFormatException error) {
+    private BigDecimal getRequiredRegistrationFee() {
+        BigDecimal fee = getConfiguredRegistrationFee();
+        if (fee == null) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Registration fee is not configured.");
+        }
+        return fee;
+    }
+
+    private BigDecimal getConfiguredRegistrationFee() {
+        return registrationFeeRepository.findById(RegistrationFee.SETTINGS_ID)
+                .map(RegistrationFee::getAmount)
+                .filter(amount -> amount.signum() > 0)
+                .orElse(null);
+    }
+
+    private static BigDecimal validateRegistrationFee(BigDecimal amount) {
+        if (amount == null || amount.signum() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Registration fee must be greater than zero.");
+        }
+        try {
+            BigDecimal normalizedAmount = amount.setScale(2, RoundingMode.UNNECESSARY);
+            if (normalizedAmount.precision() > 12) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Registration fee is too large.");
+            }
+            return normalizedAmount;
+        } catch (ArithmeticException error) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Registration fee must have at most two decimal places.");
+        }
+    }
+
+    private void requireAdminPassword(String providedPassword) {
+        if (adminPassword.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Admin password is not configured on the backend.");
+        }
+        if (providedPassword == null || !MessageDigest.isEqual(
+                adminPassword.getBytes(StandardCharsets.UTF_8),
+                providedPassword.getBytes(StandardCharsets.UTF_8))) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Admin password is incorrect.");
         }
     }
 

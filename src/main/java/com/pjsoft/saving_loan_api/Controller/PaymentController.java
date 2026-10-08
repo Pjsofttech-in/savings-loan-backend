@@ -11,12 +11,16 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -38,6 +42,13 @@ public class PaymentController {
     @GetMapping("/config")
     public Map<String, Object> getConfiguration() {
         return paymentService.checkoutConfiguration();
+    }
+
+    @PutMapping("/registration-fee")
+    public Map<String, Object> updateRegistrationFee(
+            @RequestBody RegistrationFeeRequest request,
+            @RequestHeader(name = "X-Admin-Password", required = false) String adminPassword) {
+        return Map.of("amount", paymentService.updateRegistrationFee(request.amount(), adminPassword));
     }
 
     @PostMapping("/orders")
@@ -118,5 +129,8 @@ public class PaymentController {
         } catch (RuntimeException error) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Date must use YYYY-MM-DD format.");
         }
+    }
+
+    public record RegistrationFeeRequest(BigDecimal amount) {
     }
 }
