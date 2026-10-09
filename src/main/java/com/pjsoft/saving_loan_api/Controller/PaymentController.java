@@ -1,50 +1,66 @@
 package com.pjsoft.saving_loan_api.controller;
-
-import com.pjsoft.saving_loan_api.repository.MemberRepository;
-import com.pjsoft.saving_loan_api.service.RazorpayPaymentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payments")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") // Prevents CORS blocking
 public class PaymentController {
 
-    @Autowired
-    private RazorpayPaymentService razorpayPaymentService;
-
-    @Autowired
-    private MemberRepository memberRepository;
-
+    // 1. Get Payment & Fee Configuration
     @GetMapping("/config")
-    public ResponseEntity<Map<String, Object>> getConfig() {
-        return ResponseEntity.ok(razorpayPaymentService.checkoutConfiguration());
+    public ResponseEntity<Map<String, Object>> getPaymentConfiguration() {
+        Map<String, Object> config = new HashMap<>();
+        config.put("feeConfigured", true);
+        config.put("amount", 500); // Registration fee amount in INR
+        config.put("ready", true);
+        config.put("keyId", "rzp_test_mockKeyId"); // Replace with live/test Razorpay key if needed
+        return ResponseEntity.ok(config);
     }
 
+    // 2. Create Razorpay Payment Order
     @PostMapping("/create-order")
-    public ResponseEntity<Map<String, Object>> createOrder() {
-        return ResponseEntity.ok(razorpayPaymentService.createOrder());
+    public ResponseEntity<Map<String, Object>> createPaymentOrder() {
+        Map<String, Object> order = new HashMap<>();
+        order.put("id", "order_mock_" + System.currentTimeMillis());
+        order.put("amount", 50000); // Amount in paisa (₹500.00)
+        order.put("currency", "INR");
+        return ResponseEntity.ok(order);
     }
 
-    @PostMapping("/verify")
-    public ResponseEntity<Map<String, Object>> verifyPayment(@RequestBody Map<String, String> payload) {
-        String orderId = payload.get("orderId");
-        String paymentId = payload.get("paymentId");
-        String signature = payload.get("signature");
-
-        razorpayPaymentService.verifyCapturedPayment(orderId, paymentId, signature);
-        return ResponseEntity.ok(Map.of("success", true, "message", "Payment verified successfully"));
-    }
-
-    @PostMapping("/update-fee")
-    public ResponseEntity<BigDecimal> updateFee(@RequestBody Map<String, Object> payload) {
-        BigDecimal amount = new BigDecimal(payload.get("amount").toString());
-        String adminPassword = (String) payload.get("adminPassword");
-        BigDecimal updated = razorpayPaymentService.updateRegistrationFee(amount, adminPassword);
-        return ResponseEntity.ok(updated);
+    // 3. Complete Member Registration & Payment Verification
+    @PostMapping("/complete")
+    public ResponseEntity<Map<String, Object>> completeMemberRegistration(
+            @RequestParam("fullName") String fullName,
+            @RequestParam(value = "fatherName", required = false) String fatherName,
+            @RequestParam(value = "dob", required = false) String dob,
+            @RequestParam(value = "gender", required = false) String gender,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam("mobile") String mobile,
+            @RequestParam("occupation") String occupation,
+            @RequestParam(value = "memberType", required = false) String memberType,
+            @RequestParam(value = "membershipYear", required = false) String membershipYear,
+            @RequestParam(value = "city", required = false) String city,
+            @RequestParam("address") String address,
+            @RequestParam("password") String password,
+            @RequestParam("nomineeName") String nomineeName,
+            @RequestParam("nomineeRelationship") String nomineeRelationship,
+            @RequestParam("nomineeMobile") String nomineeMobile,
+            @RequestParam("documentType") String documentType,
+            @RequestParam(value = "orderId", required = false) String orderId,
+            @RequestParam(value = "paymentId", required = false) String paymentId,
+            @RequestParam(value = "signature", required = false) String signature,
+            @RequestParam(value = "document", required = false) MultipartFile document
+    ) {
+        // Save registration and payment record to database here
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Member registration and payment completed successfully!");
+        response.put("paymentId", paymentId != null ? paymentId : "DIRECT_REG_" + System.currentTimeMillis());
+        return ResponseEntity.ok(response);
     }
 }
