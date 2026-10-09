@@ -45,6 +45,15 @@ public class Share {
     @Column(name = "payment_status", length = 30)
     private String paymentStatus;
 
+    @Column(name = "status", length = 30)
+    private String status; // Added to support ShareRepository filter
+
+    @Column(name = "mode", length = 50)
+    private String mode; // Added to support ShareRepository filter
+
+    @Column(name = "year", length = 10)
+    private String year; // Added to support ShareRepository filter
+
     @Column(name = "due_date")
     private LocalDate dueDate;
 
@@ -57,20 +66,6 @@ public class Share {
     // --- CONSTRUCTORS ---
 
     public Share() {}
-
-    public Share(Member member, String fullName, String mobile, String address,
-                 int numberOfShares, double monthlySaving, double paymentAmount,
-                 String paymentMethod, LocalDate applicationDate) {
-        this.member = member;
-        this.fullName = fullName;
-        this.mobile = mobile;
-        this.address = address;
-        this.numberOfShares = numberOfShares;
-        this.monthlySaving = monthlySaving;
-        this.paymentAmount = paymentAmount;
-        this.paymentMethod = paymentMethod;
-        this.applicationDate = applicationDate;
-    }
 
     // --- GETTERS AND SETTERS ---
 
@@ -109,6 +104,15 @@ public class Share {
 
     public String getPaymentStatus() { return paymentStatus; }
     public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public String getMode() { return mode; }
+    public void setMode(String mode) { this.mode = mode; }
+
+    public String getYear() { return year; }
+    public void setYear(String year) { this.year = year; }
 
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }

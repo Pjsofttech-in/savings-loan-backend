@@ -1,7 +1,7 @@
 package com.pjsoft.saving_loan_api.service;
 
-import com.pjsoft.saving_loan_api.Respository.MemberRepository;
-import com.pjsoft.saving_loan_api.Respository.ShareRepository;
+import com.pjsoft.saving_loan_api.repository.MemberRepository;
+import com.pjsoft.saving_loan_api.repository.ShareRepository;
 import com.pjsoft.saving_loan_api.model.Member;
 import com.pjsoft.saving_loan_api.model.Share;
 import org.springframework.boot.CommandLineRunner;

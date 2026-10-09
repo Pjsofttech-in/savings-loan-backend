@@ -1,6 +1,6 @@
 package com.pjsoft.saving_loan_api.service;
 
-import com.pjsoft.saving_loan_api.Respository.RegistrationFeeRepository;
+import com.pjsoft.saving_loan_api.repository.RegistrationFeeRepository;
 import com.pjsoft.saving_loan_api.model.RegistrationFee;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.pjsoft.saving_loan_api.Respository;
+package com.pjsoft.saving_loan_api.repository;
 
 import com.pjsoft.saving_loan_api.model.RegistrationFee;
 import org.springframework.data.jpa.repository.JpaRepository;
