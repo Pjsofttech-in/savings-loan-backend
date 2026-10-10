@@ -15,9 +15,10 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll() // ✅ Saari /api/** requests ko bina authentication ke allow karega
                 .anyRequest().permitAll()
-            );
+            )
+            .httpBasic(basic -> basic.disable())
+            .formLogin(login -> login.disable());
         return http.build();
     }
 }
