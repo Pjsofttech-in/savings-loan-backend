@@ -1,4 +1,4 @@
-package com.pjsoft.saving_loan_api.controller;
+package com.pjsoft.saving_loan_api.Controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
