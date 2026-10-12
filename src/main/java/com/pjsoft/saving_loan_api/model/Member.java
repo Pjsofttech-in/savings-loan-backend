@@ -1,5 +1,6 @@
 package com.pjsoft.saving_loan_api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
@@ -7,6 +8,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "members")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Member {
 
     @Id
