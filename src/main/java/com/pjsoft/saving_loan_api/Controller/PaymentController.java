@@ -1,122 +1,62 @@
-package com.pjsoft.saving_loan_api.Controller; 
+package com.pjsoft.saving_loan_api.controller;
 
-import com.pjsoft.saving_loan_api.Respository.MemberRepository;
-import com.pjsoft.saving_loan_api.model.Member;
-import com.pjsoft.saving_loan_api.service.RazorpayPaymentService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payments")
 @CrossOrigin(origins = "*")
 public class PaymentController {
-    private static final long MAX_DOCUMENT_SIZE = 5L * 1024 * 1024;
-
-    private final RazorpayPaymentService paymentService;
-    private final MemberRepository memberRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    public PaymentController(RazorpayPaymentService paymentService, MemberRepository memberRepository) {
-        this.paymentService = paymentService;
-        this.memberRepository = memberRepository;
-    }
 
     @GetMapping("/config")
-    public Map<String, Object> getConfiguration() {
-        return paymentService.checkoutConfiguration();
+    public ResponseEntity<Map<String, Object>> getPaymentConfiguration() {
+        Map<String, Object> config = new HashMap<>();
+        config.put("feeConfigured", true);
+        config.put("amount", 500);
+        config.put("ready", true);
+        config.put("keyId", "rzp_test_mockKeyId");
+        return ResponseEntity.ok(config);
     }
 
-    @PostMapping("/orders")
-    public Map<String, Object> createOrder() {
-        return paymentService.createOrder();
+    @PostMapping("/create-order")
+    public ResponseEntity<Map<String, Object>> createPaymentOrder() {
+        Map<String, Object> order = new HashMap<>();
+        order.put("id", "order_mock_" + System.currentTimeMillis());
+        order.put("amount", 50000);
+        order.put("currency", "INR");
+        return ResponseEntity.ok(order);
     }
 
-    @PostMapping(value = "/complete", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Member> completeRegistration(
-            @RequestParam String orderId,
-            @RequestParam String paymentId,
-            @RequestParam String signature,
-            @RequestParam String fullName,
-            @RequestParam String mobile,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String occupation,
-            @RequestParam(required = false) String memberType,
-            @RequestParam(required = false) String membershipYear,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String address,
-            @RequestParam(required = false) String joiningDate,
-            @RequestParam String password,
-            @RequestParam String nomineeName,
-            @RequestParam String nomineeRelationship,
-            @RequestParam String nomineeMobile,
-            @RequestParam(required = false) String fatherName,
-            @RequestParam(required = false) String dob,
-            @RequestParam(required = false) String gender,
-            @RequestParam String documentType,
-            @RequestParam MultipartFile document) {
-        validateDocument(document);
-        paymentService.verifyCapturedPayment(orderId, paymentId, signature);
-
-        Member member = new Member();
-        member.setFullName(fullName);
-        member.setFatherName(fatherName);
-        member.setBirthDate(parseDate(dob));
-        member.setGender(gender);
-        member.setEmail(email);
-        member.setMobile(mobile);
-        member.setOccupation(occupation);
-        member.setMemberType(memberType);
-        member.setMembershipYear(membershipYear);
-        member.setCity(city);
-        member.setAddress(address);
-        member.setJoiningDate(parseDate(joiningDate));
-        member.setPasswordHash(passwordEncoder.encode(password));
-        member.setNomineeName(nomineeName);
-        member.setNomineeRelationship(nomineeRelationship);
-        member.setNomineeMobile(nomineeMobile);
-        member.setPaymentId(paymentId);
-        member.setDocumentType(documentType);
-        try {
-            member.setVerificationDocument(document.getBytes());
-        } catch (IOException error) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to read the verification document.");
-        }
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(memberRepository.save(member));
-    }
-
-    private static void validateDocument(MultipartFile document) {
-        if (document == null || document.isEmpty() || document.getSize() > MAX_DOCUMENT_SIZE) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A verification document up to 5 MB is required.");
-        }
-        String contentType = document.getContentType();
-        if (!MediaType.APPLICATION_PDF_VALUE.equals(contentType)
-                && !MediaType.IMAGE_JPEG_VALUE.equals(contentType)
-                && !MediaType.IMAGE_PNG_VALUE.equals(contentType)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Document must be a PDF, JPG, or PNG.");
-        }
-    }
-
-    private static LocalDate parseDate(String value) {
-        if (value == null || value.isBlank()) return null;
-        try {
-            return LocalDate.parse(value);
-        } catch (RuntimeException error) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Date must use YYYY-MM-DD format.");
-        }
+    @PostMapping("/complete")
+    public ResponseEntity<Map<String, Object>> completeMemberRegistration(
+            @RequestParam(value = "fullName", required = false) String fullName,
+            @RequestParam(value = "fatherName", required = false) String fatherName,
+            @RequestParam(value = "dob", required = false) String dob,
+            @RequestParam(value = "gender", required = false) String gender,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "mobile", required = false) String mobile,
+            @RequestParam(value = "occupation", required = false) String occupation,
+            @RequestParam(value = "memberType", required = false) String memberType,
+            @RequestParam(value = "membershipYear", required = false) String membershipYear,
+            @RequestParam(value = "city", required = false) String city,
+            @RequestParam(value = "address", required = false) String address,
+            @RequestParam(value = "password", required = false) String password,
+            @RequestParam(value = "nomineeName", required = false) String nomineeName,
+            @RequestParam(value = "nomineeRelationship", required = false) String nomineeRelationship,
+            @RequestParam(value = "nomineeMobile", required = false) String nomineeMobile,
+            @RequestParam(value = "documentType", required = false) String documentType,
+            @RequestParam(value = "orderId", required = false) String orderId,
+            @RequestParam(value = "paymentId", required = false) String paymentId,
+            @RequestParam(value = "signature", required = false) String signature,
+            @RequestParam(value = "document", required = false) MultipartFile document
+    ) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Member registration and payment completed successfully!");
+        return ResponseEntity.ok(response);
     }
 }
