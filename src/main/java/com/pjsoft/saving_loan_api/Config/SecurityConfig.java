@@ -1,5 +1,5 @@
 
-package com.pjsoft.saving_loan_api.Config;
+package com.pjsoft.saving_loan_api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

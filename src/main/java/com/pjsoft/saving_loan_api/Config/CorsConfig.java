@@ -1,4 +1,4 @@
-package com.pjsoft.saving_loan_api.Config;
+package com.pjsoft.saving_loan_api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +15,7 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(false);
-        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173", "http://localhost:3000", "https://wayabroad.in"));
+        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173", "http://localhost:3000", "https://wayabroad.in"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 

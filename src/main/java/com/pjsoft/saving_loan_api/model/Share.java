@@ -48,13 +48,13 @@ public class Share {
     private String paymentStatus;
 
     @Column(name = "status", length = 30)
-    private String status; // Added to support ShareRepository filter
+    private String status;
 
     @Column(name = "mode", length = 50)
-    private String mode; // Added to support ShareRepository filter
+    private String mode;
 
     @Column(name = "year", length = 10)
-    private String year; // Added to support ShareRepository filter
+    private String year;
 
     @Column(name = "due_date")
     private LocalDate dueDate;
@@ -64,6 +64,13 @@ public class Share {
 
     @Column(name = "application_date")
     private LocalDate applicationDate;
+
+    // --- BANK ROUTING FIELDS ---
+    @Column(name = "source_bank", length = 100)
+    private String sourceBank;
+
+    @Column(name = "destination_bank", length = 100)
+    private String destinationBank;
 
     // --- CONSTRUCTORS ---
 
@@ -124,4 +131,10 @@ public class Share {
 
     public LocalDate getApplicationDate() { return applicationDate; }
     public void setApplicationDate(LocalDate applicationDate) { this.applicationDate = applicationDate; }
+
+    public String getSourceBank() { return sourceBank; }
+    public void setSourceBank(String sourceBank) { this.sourceBank = sourceBank; }
+
+    public String getDestinationBank() { return destinationBank; }
+    public void setDestinationBank(String destinationBank) { this.destinationBank = destinationBank; }
 }
