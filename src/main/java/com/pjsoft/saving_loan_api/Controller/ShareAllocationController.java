@@ -1,5 +1,5 @@
 // src/main/java/com/pjsoft/saving_loan_api/Controller/ShareAllocationController.java
-package com.pjsoft.saving_loan_api.Controller;
+package com.pjsoft.saving_loan_api.controller;
 
 import com.pjsoft.saving_loan_api.dto.ShareRequestDto;
 import com.pjsoft.saving_loan_api.model.Member;

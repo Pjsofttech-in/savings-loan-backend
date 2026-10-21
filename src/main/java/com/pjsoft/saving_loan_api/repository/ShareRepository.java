@@ -1,4 +1,3 @@
-// src/main/java/com/pjsoft/saving_loan_api/repository/ShareRepository.java
 package com.pjsoft.saving_loan_api.repository;
 
 import com.pjsoft.saving_loan_api.model.Share;

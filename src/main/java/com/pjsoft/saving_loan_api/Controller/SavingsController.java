@@ -1,4 +1,4 @@
-package com.pjsoft.saving_loan_api.Controller;
+package com.pjsoft.saving_loan_api.controller;
 
 import com.pjsoft.saving_loan_api.model.Savings;
 import com.pjsoft.saving_loan_api.repository.SavingsRepository;
