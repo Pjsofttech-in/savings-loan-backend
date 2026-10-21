@@ -1,3 +1,4 @@
+// src/main/java/com/pjsoft/saving_loan_api/repository/ShareRepository.java
 package com.pjsoft.saving_loan_api.repository;
 
 import com.pjsoft.saving_loan_api.model.Share;
@@ -12,10 +13,10 @@ import java.util.List;
 public interface ShareRepository extends JpaRepository<Share, Long> {
 
     @Query("SELECT s FROM Share s WHERE " +
-           "(:year IS NULL OR s.year = :year) AND " +
-           "(:status IS NULL OR s.status = :status) AND " +
-           "(:mode IS NULL OR s.mode = :mode) AND " +
-           "(:dueDate IS NULL OR s.dueDate = :dueDate)")
+            "(:year IS NULL OR s.year = :year) AND " +
+            "(:status IS NULL OR s.status = :status) AND " +
+            "(:mode IS NULL OR s.mode = :mode) AND " +
+            "(:dueDate IS NULL OR s.dueDate = :dueDate)")
     List<Share> findByFilters(
             @Param("year") String year,
             @Param("status") String status,
@@ -23,6 +24,8 @@ public interface ShareRepository extends JpaRepository<Share, Long> {
             @Param("dueDate") String dueDate
     );
 
-    List<Share> findByMemberId(Long memberId);
+    @Query("SELECT s FROM Share s WHERE s.member.id = :memberId")
+    List<Share> findByMemberId(@Param("memberId") Long memberId);
+
     boolean existsByReferenceNumber(String referenceNumber);
 }

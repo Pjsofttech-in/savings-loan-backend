@@ -1,4 +1,4 @@
-// src/main/java/com/pjsoft/saving_loan_api/Controller/PaymentController.java
+// src/main/java/com/pjsoft/saving_loan_api/controller/PaymentController.java
 package com.pjsoft.saving_loan_api.Controller;
 
 import com.pjsoft.saving_loan_api.model.Member;
@@ -64,7 +64,7 @@ public class PaymentController {
             @RequestParam(value = "nomineeName", required = false) String nomineeName,
             @RequestParam(value = "nomineeRelationship", required = false) String nomineeRelationship,
             @RequestParam(value = "nomineeMobile", required = false) String nomineeMobile,
-            // Address: the form sends street/city/taluka/district/state/pincode (not "address")
+            // Address fields
             @RequestParam(value = "address", required = false) String address,
             @RequestParam(value = "street", required = false) String street,
             @RequestParam(value = "city", required = false) String city,
@@ -72,6 +72,18 @@ public class PaymentController {
             @RequestParam(value = "district", required = false) String district,
             @RequestParam(value = "state", required = false) String state,
             @RequestParam(value = "pincode", required = false) String pincode,
+            // Witness 1 & Witness 2 fields added to prevent 400 Bad Request
+            @RequestParam(value = "witnessName", required = false) String witnessName,
+            @RequestParam(value = "witnessMemberNo", required = false) String witnessMemberNo,
+            @RequestParam(value = "witnessPhone", required = false) String witnessPhone,
+            @RequestParam(value = "witnessEmail", required = false) String witnessEmail,
+            @RequestParam(value = "witnessIdProofType", required = false) String witnessIdProofType,
+            @RequestParam(value = "2witnessName", required = false) String witness2Name,
+            @RequestParam(value = "2witnessMemberNo", required = false) String witness2MemberNo,
+            @RequestParam(value = "2witnessPhone", required = false) String witness2Phone,
+            @RequestParam(value = "2witnessEmail", required = false) String witness2Email,
+            @RequestParam(value = "2witnessIdProofType", required = false) String witness2IdProofType,
+            // Payment & Files
             @RequestParam(value = "documentType", required = false) String documentType,
             @RequestParam(value = "registrationFee", required = false, defaultValue = "500") Double registrationFee,
             @RequestParam(value = "monthlyFee", required = false, defaultValue = "1000") Double monthlyFee,
@@ -80,7 +92,9 @@ public class PaymentController {
             @RequestParam(value = "transactionId", required = false) String transactionId,
             @RequestParam(value = "sourceBank", required = false) String sourceBank,
             @RequestParam(value = "destinationBank", required = false) String destinationBank,
-            @RequestParam(value = "document", required = false) MultipartFile document
+            @RequestParam(value = "document", required = false) MultipartFile document,
+            @RequestParam(value = "witnessDocument", required = false) MultipartFile witnessDocument,
+            @RequestParam(value = "witness2Document", required = false) MultipartFile witness2Document
     ) throws IOException {
         if (isBlank(fullName) || isBlank(mobile)) {
             return error(HttpStatus.BAD_REQUEST, "Full name and mobile are required.");
@@ -90,7 +104,7 @@ public class PaymentController {
             return error(HttpStatus.CONFLICT, "A member with mobile " + cleanMobile + " is already registered.");
         }
 
-        // Build one address string from the separate form fields
+        // Build address string
         StringBuilder fullAddress = new StringBuilder();
         for (String part : new String[]{!isBlank(street) ? street : address, taluka, district, state}) {
             if (!isBlank(part)) {
@@ -117,6 +131,7 @@ public class PaymentController {
         member.setDocumentType(documentType);
         member.setStatus("Active");
         member.setJoiningDate(LocalDate.now());
+
         if (!isBlank(dob)) {
             try { member.setBirthDate(LocalDate.parse(dob)); } catch (Exception ignored) { }
         }
@@ -129,7 +144,7 @@ public class PaymentController {
 
         Member savedMember = memberRepository.save(member);
 
-        // Registration fee entry (shown in Member list / share list)
+        // Registration fee entry
         Share share = new Share();
         share.setMember(savedMember);
         share.setFullName(savedMember.getFullName());
