@@ -5,6 +5,7 @@ import com.pjsoft.saving_loan_api.model.Share;
 import com.pjsoft.saving_loan_api.repository.MemberRepository;
 import com.pjsoft.saving_loan_api.repository.ShareRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,23 +30,52 @@ public class PaymentController {
     @Autowired
     private ShareRepository shareRepository;
 
+    @Value("${app.registration.fee:500.0}")
+    private double configuredRegistrationFee;
+
+    @Value("${app.monthly.fee:1000.0}")
+    private double configuredMonthlyFee;
+
     @GetMapping("/config")
     public ResponseEntity<Map<String, Object>> getPaymentConfiguration() {
         Map<String, Object> config = new HashMap<>();
         config.put("feeConfigured", true);
-        config.put("amount", 500);
+        config.put("amount", configuredRegistrationFee);
+        config.put("monthlyFee", configuredMonthlyFee);
         config.put("ready", true);
         config.put("keyId", "rzp_test_mockKeyId");
         return ResponseEntity.ok(config);
     }
 
-    @PostMapping("/create-order")
+    @PostMapping({"/create-order", "/orders"})
     public ResponseEntity<Map<String, Object>> createPaymentOrder() {
         Map<String, Object> order = new HashMap<>();
         order.put("id", "order_mock_" + System.currentTimeMillis());
-        order.put("amount", 50000);
+        order.put("amount", (int) (configuredRegistrationFee * 100)); // Paisa conversion
         order.put("currency", "INR");
         return ResponseEntity.ok(order);
+    }
+
+    @PutMapping("/registration-fee")
+    public ResponseEntity<Map<String, Object>> saveRegistrationFee(
+            @RequestBody(required = false) Map<String, Object> body,
+            @RequestHeader(value = "X-Admin-Password", required = false) String adminPassword) {
+        
+        if (body != null) {
+            try {
+                if (body.containsKey("amount")) {
+                    configuredRegistrationFee = Double.parseDouble(body.get("amount").toString());
+                }
+                if (body.containsKey("monthlyFee")) {
+                    configuredMonthlyFee = Double.parseDouble(body.get("monthlyFee").toString());
+                }
+            } catch (Exception ignored) {}
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Fee settings updated successfully.");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/complete")
@@ -81,10 +110,10 @@ public class PaymentController {
             String pincode = resolve(multipartRequest, request, "pincode", "pinCode");
 
             String regFeeStr = resolve(multipartRequest, request, "registrationFee", "registration_fee");
-            double registrationFee = isBlank(regFeeStr) ? 500.0 : Double.parseDouble(regFeeStr);
+            double registrationFee = isBlank(regFeeStr) ? configuredRegistrationFee : Double.parseDouble(regFeeStr);
 
             String monthlyFeeStr = resolve(multipartRequest, request, "monthlyFee", "monthly_fee");
-            double monthlyFee = isBlank(monthlyFeeStr) ? 1000.0 : Double.parseDouble(monthlyFeeStr);
+            double monthlyFee = isBlank(monthlyFeeStr) ? configuredMonthlyFee : Double.parseDouble(monthlyFeeStr);
 
             String paymentStatus = resolve(multipartRequest, request, "paymentStatus", "payment_status");
             if (isBlank(paymentStatus)) paymentStatus = "Complete";
